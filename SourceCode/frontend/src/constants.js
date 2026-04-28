@@ -1,4 +1,4 @@
-export const API_BASE = 'http://localhost:5000';
+export const API_BASE = 'https://intelligent-real-time-human-emotion.onrender.com';
 
 export const EMOTION_COLORS = {
   Angry:    '#c1121f',
