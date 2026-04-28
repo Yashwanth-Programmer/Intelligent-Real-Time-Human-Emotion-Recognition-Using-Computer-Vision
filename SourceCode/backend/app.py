@@ -21,7 +21,7 @@ print("⏳ Loading model …")
 model = None
 model_load_error = None
 try:
-    model = keras.models.load_model(model_path)
+    model = keras.models.load_model(model_path, compile=False)
     print("✅ Model loaded")
 except Exception as exc:
     model_load_error = str(exc)
