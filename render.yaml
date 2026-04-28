@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: human-emotion-detector-backend
+    runtime: python
+    rootDir: SourceCode/backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.13
