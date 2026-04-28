@@ -18,8 +18,14 @@ emotion_labels = config["emotion_labels"]
 model_path     = config["model_path"]
 
 print("⏳ Loading model …")
-model = keras.models.load_model(model_path)
-print("✅ Model loaded")
+model = None
+model_load_error = None
+try:
+    model = keras.models.load_model(model_path)
+    print("✅ Model loaded")
+except Exception as exc:
+    model_load_error = str(exc)
+    print(f"❌ Model failed to load: {model_load_error}")
 
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
@@ -44,6 +50,8 @@ def decode_image(source):
     return cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
 def run_inference(frame):
+    if model is None:
+        raise RuntimeError("Model is not loaded")
     gray  = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(
         gray, scaleFactor=1.3, minNeighbors=5, minSize=(30, 30)
@@ -80,7 +88,14 @@ def run_inference(frame):
 # ── Routes ───────────────────────────────────────────────────────────────────
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "model": model_path, "labels": emotion_labels})
+    ready = model is not None
+    return jsonify({
+        "status": "ok" if ready else "degraded",
+        "model": model_path,
+        "model_ready": ready,
+        "model_load_error": model_load_error,
+        "labels": emotion_labels
+    })
 
 @app.route("/labels")
 def labels():
@@ -88,6 +103,13 @@ def labels():
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    if model is None:
+        return jsonify({
+            "error": "Model is not loaded on server",
+            "model": model_path,
+            "details": model_load_error
+        }), 503
+
     if "image" in request.files:
         frame = decode_image(request.files["image"].read())
     else:
@@ -115,6 +137,13 @@ def predict():
 
 @app.route("/webcam_frame", methods=["POST"])
 def webcam_frame():
+    if model is None:
+        return jsonify({
+            "error": "Model is not loaded on server",
+            "model": model_path,
+            "details": model_load_error
+        }), 503
+
     data  = request.get_json(force=True)
     frame = decode_image(data.get("frame", ""))
     if frame is None:
