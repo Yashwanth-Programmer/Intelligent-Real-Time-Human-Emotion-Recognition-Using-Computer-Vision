@@ -1,4 +1,6 @@
-export const API_BASE = 'https://intelligent-real-time-human-emotion.onrender.com';
+export const API_BASE =
+  process.env.REACT_APP_API_BASE ||
+  'https://intelligent-real-time-human-emotion.onrender.com';
 
 export const EMOTION_COLORS = {
   Angry:    '#c1121f',
