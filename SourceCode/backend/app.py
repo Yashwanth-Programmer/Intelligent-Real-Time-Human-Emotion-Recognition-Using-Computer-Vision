@@ -47,11 +47,8 @@ face_cascade = cv2.CascadeClassifier(
 )
 
 app = Flask(__name__)
-_cors_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
-_extra = os.environ.get("CORS_ORIGINS", "").strip()
-if _extra:
-    _cors_origins.extend(o.strip() for o in _extra.split(",") if o.strip())
-CORS(app, origins=_cors_origins)
+# Allow frontend calls from any deployed domain (Vercel, localhost, etc.).
+CORS(app)
 
 
 def preprocess_face(roi_gray):
