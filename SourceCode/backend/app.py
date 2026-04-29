@@ -8,6 +8,7 @@ import base64
 from flask import Flask, request, jsonify
 from    flask_cors import CORS
 from tensorflow import keras
+from tensorflow.keras.layers import Dense as KerasDense
 
 
 with open("config.json") as f:
@@ -20,8 +21,22 @@ model_path     = config["model_path"]
 print("⏳ Loading model …")
 model = None
 model_load_error = None
+
+
+class CompatibleDense(KerasDense):
+    @classmethod
+    def from_config(cls, config):
+        # Models saved with newer Keras may include this key.
+        config.pop("quantization_config", None)
+        return super().from_config(config)
+
+
 try:
-    model = keras.models.load_model(model_path, compile=False)
+    model = keras.models.load_model(
+        model_path,
+        compile=False,
+        custom_objects={"Dense": CompatibleDense},
+    )
     print("✅ Model loaded")
 except Exception as exc:
     model_load_error = str(exc)
